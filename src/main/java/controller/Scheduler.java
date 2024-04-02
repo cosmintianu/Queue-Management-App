@@ -3,6 +3,8 @@ package controller;
 import model.Server;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -18,7 +20,7 @@ public class Scheduler {
         this.maxNoServers = maxNoServers;
         this.maxTasksPerServer = maxTasksPerServer;
         this.currentTime = currentTime;
-        servers = new ArrayList<>();
+        servers = Collections.synchronizedList(new ArrayList<>());
         for (int i = 0; i < maxNoServers; i++) {
             Server server = new Server(currentTime); // Create a new server object
             Thread serverThread = new Thread(server); // Create a thread for the server

@@ -12,7 +12,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Server implements Runnable {
     private BlockingQueue<Task> tasks;
     private AtomicInteger waitingPeriod;
-    private final AtomicBoolean hasTasks;
     private final AtomicBoolean running;
     AtomicInteger currentTime;
 
@@ -22,7 +21,7 @@ public class Server implements Runnable {
         waitingPeriod = new AtomicInteger(0);
         this.currentTime = currentTime;
         running = new AtomicBoolean(true);
-        hasTasks = new AtomicBoolean(false);
+
     }
 
     public void addTask(Task newTask) {
@@ -47,9 +46,11 @@ public class Server implements Runnable {
 
                     while (waitingPeriod.get() > 0) {
                         System.out.println("Time in server " + currentTime + " and remaining time: " + waitingPeriod.get());
+
+                        task.setServiceTime(waitingPeriod.get());
                         TimeUnit.SECONDS.sleep(1);
                         waitingPeriod.decrementAndGet();
-                        task.setServiceTime(waitingPeriod.get());
+
                     }
 
                     tasks.poll();

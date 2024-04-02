@@ -5,12 +5,13 @@ import model.Task;
 import javax.swing.*;
 import java.awt.*;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SimulationFrame extends JFrame {
-    private JLabel[] queueLabels;
+    private JTextArea textArea;
     private JLabel timeLabel;
 
-    public SimulationFrame(int numberOfServers) {
+    public SimulationFrame() {
         setTitle("Queue Management App");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(800, 600);
@@ -23,34 +24,35 @@ public class SimulationFrame extends JFrame {
         // Add the time panel to the frame
         add(timePanel, BorderLayout.NORTH);
 
-        // Create a panel to hold the queue labels
-        JPanel queuePanel = new JPanel(new GridLayout(numberOfServers, 1));
-        queueLabels = new JLabel[numberOfServers];
-        for (int i = 0; i < numberOfServers; i++) {
-            JLabel queueLabel = new JLabel("Queue " + (i + 1) + ": ");
-            queuePanel.add(queueLabel);
-            queueLabels[i] = queueLabel;
-        }
-
-        // Add the queue panel to the frame
-        add(queuePanel, BorderLayout.CENTER);
+        // Create a text area to display the queue status
+        textArea = new JTextArea();
+        textArea.setEditable(false); // Make it non-editable
+        JScrollPane scrollPane = new JScrollPane(textArea); // Add scroll pane
+        add(scrollPane, BorderLayout.CENTER);
 
         setVisible(true);
     }
 
-    // Update the queue labels with the tasks in the specified server's queue
-    public void updateServerQueue(int serverIndex, BlockingQueue<Task> tasks) {
-        StringBuilder queueContent = new StringBuilder();
-        queueContent.append("Queue ").append(serverIndex + 1).append(": ");
+    // Update the text area with the tasks in the queues for all servers
+    public synchronized void updateServerQueue(BlockingQueue<Task> tasks, AtomicInteger currentTime) {
+        StringBuilder content = new StringBuilder();
+        content.append(textArea.getText()); // Append existing content
+        content.append("\nTime: ").append(currentTime.get()).append("\n");
+        content.append("Queue: ");
+
         for (Task task : tasks) {
-            queueContent.append("(").append(task.getId()).append(",").append(task.getArrivalTime()).append(",")
+            content.append("(").append(task.getId()).append(",").append(task.getArrivalTime()).append(",")
                     .append(task.getServiceTime()).append("); ");
         }
-        queueLabels[serverIndex].setText(queueContent.toString());
+        content.append("\n");
+
+        setCurrentTime(currentTime);
+        textArea.setText(content.toString());
     }
 
+
     // Update the current time label
-    public void setCurrentTime(int currentTime) {
-        timeLabel.setText("Current Time: " + currentTime);
+    public synchronized void setCurrentTime(AtomicInteger currentTime) {
+        timeLabel.setText("Current Time: " + currentTime.get());
     }
 }

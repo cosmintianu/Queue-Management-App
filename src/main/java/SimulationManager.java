@@ -24,7 +24,7 @@ public class SimulationManager implements Runnable {
     private AtomicInteger currentTime;
 
     public SimulationManager(AtomicInteger currentTime) {
-        this.simulationFrame = new SimulationFrame(2);
+        this.simulationFrame = new SimulationFrame();
         scheduler = new Scheduler(1, 1,currentTime);
         generatedTasks = new ArrayList<>();
         this.currentTime = currentTime;
@@ -32,8 +32,6 @@ public class SimulationManager implements Runnable {
 
     public static void main(String[] args) {
         AtomicInteger currentTime = new AtomicInteger(0);
-
-        //SimulationFrame simulationFrame = new SimulationFrame(1);
 
         SimulationManager simulationManager = new SimulationManager(currentTime);
         Thread simulationManagerThread = new Thread(simulationManager);
@@ -51,39 +49,56 @@ public class SimulationManager implements Runnable {
 
     @Override
     public void run() {
-        //int currentTime = 0;
+        try {
+            // Generate initial tasks
+            generateInitialTasks();
 
+            // Main simulation loop
+            while (!Thread.interrupted() && currentTime.get() < timeLimit) {
+                // Process tasks arrival
+                System.out.println("Time : " + currentTime.get());
+                processArrivalTasks();
+
+                // Update GUI with current simulation state
+                updateGUI();
+
+                // Sleep for a period of time (e.g., 1 second) to simulate time passing
+                TimeUnit.SECONDS.sleep(1);
+
+                // Increment the current time
+                currentTime.incrementAndGet();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            // Stop servers gracefully
+            scheduler.stopServers();
+        }
+    }
+
+    // Method to generate initial tasks
+    private void generateInitialTasks() {
         Task task1 = new Task(1, 2, 2);
         Task task2 = new Task(2, 3, 3);
         generatedTasks.add(task1);
         generatedTasks.add(task2);
-        while (!Thread.interrupted() && currentTime.get() < timeLimit) {
-            try {
-                System.out.println("Time: " + currentTime);
-                simulationFrame.setCurrentTime(currentTime.get());
-                for(Task task : generatedTasks){
-                    if(currentTime.get() >= task.getArrivalTime() && !task.isHasBeenAdded()){
-
-                        scheduler.servers.getFirst().addTask(task);
-//                        simulationFrame.updateServerQueue(0,scheduler.servers.getFirst().getTasks());
-                        //generatedTasks.remove(task);
-                        task.setHasBeenAdded(true);
-                    }
-//                    simulationFrame.updateServerQueue(0,scheduler.servers.getFirst().getTasks());
-                }
-                simulationFrame.updateServerQueue(0,scheduler.servers.getFirst().getTasks());
-                    // Sleep for 1 second to count simulation time
-
-
-                // Update simulation state, log events, etc.
-                currentTime.incrementAndGet();
-                TimeUnit.SECONDS.sleep(1);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
-        scheduler.stopServers();
-
     }
 
+    // Method to process arrival tasks
+    private void processArrivalTasks() {
+        for (Task task : generatedTasks) {
+            if (currentTime.get() >= task.getArrivalTime() && !task.isHasBeenAdded()) {
+                scheduler.servers.getFirst().addTask(task);
+                task.setHasBeenAdded(true);
+            }
+        }
+    }
+
+    // Method to update GUI with current simulation state
+    private void updateGUI() {
+        for (int i = 0; i < scheduler.servers.size(); i++) {
+            simulationFrame.updateServerQueue(scheduler.servers.get(i).getTasks(), currentTime);
+        }
+        simulationFrame.setCurrentTime(currentTime);
+    }
 }
