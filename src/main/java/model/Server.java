@@ -6,6 +6,7 @@ import java.sql.SQLOutput;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -18,7 +19,7 @@ public class Server implements Runnable {
 
     public Server() {
 
-        tasks = new PriorityBlockingQueue<>(10, Comparator.comparing(Task::getArrivalTime));
+        tasks = new LinkedBlockingQueue<>();
         waitingPeriod = new AtomicInteger(0);
         running = new AtomicBoolean(true);
     }
@@ -26,9 +27,10 @@ public class Server implements Runnable {
     public synchronized void addTask(Task newTask) {
         try {
             tasks.put(newTask);
-            if (waitingPeriod.get() == 0) {
-                waitingPeriod.set(newTask.getServiceTime());
-            }
+            waitingPeriod.addAndGet(newTask.getServiceTime());
+//            if (waitingPeriod.get() == 0) {
+//                waitingPeriod.set(newTask.getServiceTime());
+//            }
             System.out.println("da am adaugat task");
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -43,13 +45,14 @@ public class Server implements Runnable {
                 Task task = tasks.peek();
 
                 if (task != null) {
-                    waitingPeriod.set(task.getServiceTime());
+                    //waitingPeriod.addAndGet(task.getServiceTime());
 
                     System.out.println(" and remaining time: " + waitingPeriod.get());
                     Thread.sleep(1000);
                     waitingPeriod.decrementAndGet();
-                    task.setServiceTime(waitingPeriod.get());
-                    if (waitingPeriod.get() == 0) {
+                    //task.setServiceTime(waitingPeriod.get());
+                    task.setServiceTime(task.getServiceTime() - 1);
+                    if (task.getServiceTime() == 0) {
                         tasks.poll();
 
                     }
