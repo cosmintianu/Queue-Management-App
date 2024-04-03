@@ -50,9 +50,13 @@ public class SimulationFrame extends JFrame {
         textArea.setText(content.toString());
     }
 
+    public synchronized void updateSimulationInfo(String info) {
+        textArea.append(info + "\n");
+        textArea.setCaretPosition(textArea.getDocument().getLength()); // Scroll to the bottom
+    }
 
     // Update the current time label
     public synchronized void setCurrentTime(AtomicInteger currentTime) {
-        timeLabel.setText("Current Time: " + currentTime.get());
+        timeLabel.setText("Current Time: " + currentTime);
     }
 }
