@@ -18,8 +18,7 @@ public class SimulationFrame extends JFrame {
     private JLabel timeLabel;
     private JPanel inputPanel;
     private JTextField maxSimulationTimeField;
-    private JTextField maxProcessingTimeField;
-    private JTextField minProcessingTimeField;
+
     private JTextField numServersField;
     private JTextField numTasksField;
     private JTextField minArrivalTimeField;
@@ -66,27 +65,17 @@ public class SimulationFrame extends JFrame {
     private void initComponents() {
 
         maxSimulationTimeField = new JTextField();
-        maxSimulationTimeField.setText("15");
+        maxSimulationTimeField.setText("60");
         inputPanel.add(new JLabel("Max Simulation Time:"));
         inputPanel.add(maxSimulationTimeField);
 
-        maxProcessingTimeField = new JTextField();
-        maxProcessingTimeField.setText("5");
-        inputPanel.add(new JLabel("Max Processing Time:"));
-        inputPanel.add(maxProcessingTimeField);
-
-        minProcessingTimeField = new JTextField();
-        minProcessingTimeField.setText("2");
-        inputPanel.add(new JLabel("Min Processing Time:"));
-        inputPanel.add(minProcessingTimeField);
-
         numServersField = new JTextField();
-        numServersField.setText("2");
+        numServersField.setText("5");
         inputPanel.add(new JLabel("Number of Servers:"));
         inputPanel.add(numServersField);
 
         numTasksField = new JTextField();
-        numTasksField.setText("5");
+        numTasksField.setText("50");
         inputPanel.add(new JLabel("Number of Tasks:"));
         inputPanel.add(numTasksField);
 
@@ -96,17 +85,17 @@ public class SimulationFrame extends JFrame {
         inputPanel.add(minArrivalTimeField);
 
         maxArrivalTimeField = new JTextField();
-        maxArrivalTimeField.setText("9");
+        maxArrivalTimeField.setText("40");
         inputPanel.add(new JLabel("Max Arrival Time:"));
         inputPanel.add(maxArrivalTimeField);
 
         minServiceTimeField = new JTextField();
-        minServiceTimeField.setText("2");
+        minServiceTimeField.setText("1");
         inputPanel.add(new JLabel("Min Service Time:"));
         inputPanel.add(minServiceTimeField);
 
         maxServiceTimeField = new JTextField();
-        maxServiceTimeField.setText("5");
+        maxServiceTimeField.setText("7");
         inputPanel.add(new JLabel("Max Service Time:"));
         inputPanel.add(maxServiceTimeField);
 
@@ -124,8 +113,6 @@ public class SimulationFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 // Retrieve text from text fields and parse into appropriate data types
                 int maxSimulationTime = Integer.parseInt(maxSimulationTimeField.getText());
-                int maxProcessingTime = Integer.parseInt(maxProcessingTimeField.getText());
-                int minProcessingTime = Integer.parseInt(minProcessingTimeField.getText());
                 int numServers = Integer.parseInt(numServersField.getText());
                 int numTasks = Integer.parseInt(numTasksField.getText());
                 int minArrivalTime = Integer.parseInt(minArrivalTimeField.getText());
@@ -137,8 +124,7 @@ public class SimulationFrame extends JFrame {
                         SelectionPolicy.SHORTEST_TIME : SelectionPolicy.SHORTEST_QUEUE;
                 // Pass the parsed values to the corresponding fields of SimulationManager
                 simulationManagerListener.startSimulation(
-                        maxSimulationTime, maxProcessingTime, minProcessingTime,
-                        numServers, numTasks, minArrivalTime, maxArrivalTime,
+                        maxSimulationTime, numServers, numTasks, minArrivalTime, maxArrivalTime,
                         minServiceTime, maxServiceTime,selectionPolicy
                 );
             }

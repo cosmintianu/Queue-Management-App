@@ -14,8 +14,8 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
     public int timeLimit;
     public int maxArrivalTime;
     public int minArrivalTime;
-    public int maxProcessingTime;
-    public int minProcessingTime;
+    public int maxServiceTime;
+    public int minServiceTime;
     public int numbersOfServers;
     public int numberOfClients;
     public SelectionPolicy selectionPolicy = SelectionPolicy.SHORTEST_TIME;
@@ -157,7 +157,7 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
 
         for (int i = 0; i < scheduler.servers.size(); i++) {
             BlockingQueue<Task> tasks = scheduler.servers.get(i).getTasks();
-            info.append("Queue ").append(i + 1).append(": ");
+            info.append("Queue ").append(scheduler.servers.get(i).getWaitingPeriod()).append(" ").append(i + 1).append(": ");
             if (tasks.isEmpty()) {
                 info.append("closed");
             }
@@ -173,23 +173,22 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
 
 
     @Override
-    public void startSimulation(int maxSimulationTime, int maxProcessingTime,
-                                int minProcessingTime, int numServers,
+    public void startSimulation(int maxSimulationTime, int numServers,
                                 int numTasks, int minArrivalTime,
                                 int maxArrivalTime, int minServiceTime,
                                 int maxServiceTime, SelectionPolicy selectionPolicy) {
         this.timeLimit = maxSimulationTime;
         this.maxArrivalTime = maxArrivalTime;
         this.minArrivalTime = minArrivalTime;
-        this.maxProcessingTime = maxProcessingTime;
-        this.minProcessingTime = minProcessingTime;
+        this.maxServiceTime = maxServiceTime;
+        this.minServiceTime = minServiceTime;
         this.numbersOfServers = numServers;
         this.numberOfClients = numTasks;
 
         this.scheduler = new Scheduler(numbersOfServers, 1, selectionPolicy);
 
         generateNRandomTasks(numberOfClients,minArrivalTime,maxArrivalTime,
-                minProcessingTime,maxProcessingTime);
+                this.minServiceTime, this.maxServiceTime);
 
         Thread simulationManagerThread = new Thread(this);
         simulationManagerThread.start();
