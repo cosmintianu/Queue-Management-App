@@ -48,13 +48,13 @@ public class Server implements Runnable {
                     //waitingPeriod.addAndGet(task.getServiceTime());
 
                     System.out.println(" and remaining time: " + waitingPeriod.get());
-                    Thread.sleep(1000);
+                    TimeUnit.SECONDS.sleep(1);
                     waitingPeriod.decrementAndGet();
                     //task.setServiceTime(waitingPeriod.get());
                     task.setServiceTime(task.getServiceTime() - 1);
                     if (task.getServiceTime() == 0) {
                         tasks.poll();
-
+                        System.out.println("Task " + task.getId() + " completed.");
                     }
                     //System.out.println("Task completed:    " + task);
                 }

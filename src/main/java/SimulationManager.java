@@ -5,6 +5,9 @@ import view.SimulationFrame;
 import view.SimulationManagerListener;
 
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +28,7 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
     private final List<Task> generatedTasks;
     private final List<Task> generatedTasksToBePrinted;
     private final AtomicInteger currentTime;
+    private final String logFileName = "simulation_log.txt";
 
     public SimulationManager() {
         this.currentTime = new AtomicInteger(0);
@@ -169,8 +173,26 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
         }
 
         simulationFrame.updateSimulationInfo(info.toString());
+
+        logToFile(info.toString());
     }
 
+    private synchronized void logToFile(String message) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(logFileName, true))) {
+            writer.write(message);
+            writer.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public static void clearFileContents(String filePath) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            // Write nothing to the file, effectively clearing its contents
+            writer.write("");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     public void startSimulation(int maxSimulationTime, int numServers,
@@ -186,6 +208,8 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
         this.numberOfClients = numTasks;
 
         this.scheduler = new Scheduler(numbersOfServers, 1, selectionPolicy);
+
+        clearFileContents(logFileName);
 
         generateNRandomTasks(numberOfClients,minArrivalTime,maxArrivalTime,
                 this.minServiceTime, this.maxServiceTime);
