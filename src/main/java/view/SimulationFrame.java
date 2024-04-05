@@ -30,7 +30,6 @@ public class SimulationFrame extends JFrame {
     private SimulationManagerListener simulationManagerListener;
 
 
-
     public SimulationFrame(SimulationManagerListener simulationManagerListener) {
         this.simulationManagerListener=simulationManagerListener;
 

@@ -10,6 +10,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -28,7 +29,10 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
     private final List<Task> generatedTasks;
     private final List<Task> generatedTasksToBePrinted;
     private final AtomicInteger currentTime;
+    StringBuilder toBeLogged;
     private final String logFileName = "simulation_log.txt";
+
+    private final BlockingQueue<String> logQueue = new LinkedBlockingQueue<>();
 
     public SimulationManager() {
         this.currentTime = new AtomicInteger(0);
@@ -36,6 +40,7 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
 //        scheduler = new Scheduler(numbersOfServers, 1, selectionPolicy); // de modificat max tasks per server
         generatedTasks = new ArrayList<>();
         generatedTasksToBePrinted = new ArrayList<>();
+        toBeLogged = new StringBuilder();
 
     }
 
@@ -62,6 +67,8 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
 //                Thread.currentThread().interrupt();
 //            }
 //        }));
+
+        //System.out.println("in main"  +    simulationManager.currentTime);
     }
 
     @Override
@@ -69,7 +76,7 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
         try {
             // Generate initial tasks
 
-
+//            scheduler.startThreads();
             // Main simulation loop
             while (!Thread.interrupted() && currentTime.get() < timeLimit) {
                 // Process tasks arrival
@@ -77,8 +84,8 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
                 processArrivalTasks();
 
                 // Update GUI with current simulation state
-
-                updateGUI();
+                //updateGUI();
+                logQueue.put(updateGUI().toString());
 
                 // Sleep for a period of time (e.g., 1 second) to simulate time passing
 
@@ -90,7 +97,7 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
 
                 //System.out.println(scheduler.servers.getFirst().getTasks());
             }
-
+//            logToFile(toBeLogged.toString());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {
@@ -123,7 +130,7 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
     }
 
     // Method to generate initial tasks
-    private synchronized void generateInitialTasks() {
+    private  void generateInitialTasks() {
 //        Task task1 = new Task(1, 2, 2);
 //        Task task2 = new Task(2, 3, 3);
 //        Task task3 = new Task(3, 4, 4);
@@ -154,7 +161,7 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
     }
 
     // Method to update GUI with current simulation state
-    private synchronized void updateGUI() {
+    private  StringBuilder updateGUI() {
         StringBuilder info = new StringBuilder();
         info.append("Time: ").append(currentTime).append("\n");
         info.append("Waiting clients:").append(generatedTasksToBePrinted).append("\n");
@@ -173,11 +180,11 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
         }
 
         simulationFrame.updateSimulationInfo(info.toString());
-
-        logToFile(info.toString());
+        return info;
+        //logToFile(info.toString());
     }
 
-    private synchronized void logToFile(String message) {
+    private  void logToFile(String message) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(logFileName, true))) {
             writer.write(message);
             writer.newLine();
@@ -216,7 +223,25 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
 
         Thread simulationManagerThread = new Thread(this);
         simulationManagerThread.start();
+        scheduler.startThreads();
+        startLoggingThread();
 
 
+    }
+    private void startLoggingThread() {
+        Thread loggingThread = new Thread(() -> {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(logFileName, true))) {
+                while (true) {
+                    String message = logQueue.take(); // Blocking call to get the log message
+                    writer.write(message);
+                    writer.newLine();
+                    writer.flush(); // Ensure writing to file immediately
+                }
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+        loggingThread.setDaemon(true); // Set it as a daemon thread to allow program to exit even if this thread is running
+        loggingThread.start();
     }
 }
