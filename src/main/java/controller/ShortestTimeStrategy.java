@@ -12,6 +12,7 @@ public class ShortestTimeStrategy implements Strategy {
         int minWaitingTimeIndex = 0;
         for(int i = 0; i < servers.size();i++){
             if(servers.get(i).getWaitingPeriod().get() < minWaitingTime){
+                minWaitingTime=servers.get(i).getWaitingPeriod().get();
                 minWaitingTimeIndex = i;
             }
         }

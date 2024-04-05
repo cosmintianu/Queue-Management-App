@@ -24,7 +24,7 @@ public class Server implements Runnable {
         running = new AtomicBoolean(true);
     }
 
-    public synchronized void addTask(Task newTask) {
+    public void addTask(Task newTask) {
         try {
             tasks.put(newTask);
             waitingPeriod.addAndGet(newTask.getServiceTime());

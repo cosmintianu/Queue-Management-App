@@ -12,6 +12,7 @@ public void addTask(List<Server> servers, Task task) {
     int minElemSizeIndex = 0;
     for(int i = 0; i < servers.size();i++){
         if(servers.get(i).getTasks().size() < minElemSize){
+            minElemSize=servers.get(i).getTasks().size();
             minElemSizeIndex = i;
         }
     }
