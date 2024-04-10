@@ -1,8 +1,8 @@
 package model;
 
 public class Task {
-    private int id;
-    private int arrivalTime;
+    private final int id;
+    private final int arrivalTime;
     private int serviceTime;
     boolean hasBeenAdded;
 
@@ -29,16 +29,8 @@ public class Task {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public int getArrivalTime() {
         return arrivalTime;
-    }
-
-    public void setArrivalTime(int arrivalTime) {
-        this.arrivalTime = arrivalTime;
     }
 
     public int getServiceTime() {

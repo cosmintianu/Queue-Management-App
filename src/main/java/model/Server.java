@@ -1,20 +1,15 @@
 package model;
 
-import view.SimulationFrame;
 
-import java.sql.SQLOutput;
-import java.util.Comparator;
-import java.util.PriorityQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Server implements Runnable {
-    private BlockingQueue<Task> tasks;
-    private AtomicInteger waitingPeriod;
+    private final BlockingQueue<Task> tasks;
+    private final AtomicInteger waitingPeriod;
     private final AtomicBoolean running;
 
     public Server() {
@@ -28,10 +23,8 @@ public class Server implements Runnable {
         try {
             tasks.put(newTask);
             waitingPeriod.addAndGet(newTask.getServiceTime());
-//            if (waitingPeriod.get() == 0) {
-//                waitingPeriod.set(newTask.getServiceTime());
-//            }
-            System.out.println("da am adaugat task");
+
+            System.out.println("Task has been added");
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             System.err.println("Error adding task: " + e.getMessage());
@@ -74,17 +67,8 @@ public class Server implements Runnable {
         return tasks;
     }
 
-    public void setTasks(BlockingQueue<Task> tasks) {
-        this.tasks = tasks;
-    }
-
     public AtomicInteger getWaitingPeriod() {
         return waitingPeriod;
     }
-
-    public void setWaitingPeriod(AtomicInteger waitingPeriod) {
-        this.waitingPeriod = waitingPeriod;
-    }
-
 
 }

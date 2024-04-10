@@ -22,7 +22,6 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
     public int minServiceTime;
     public int numbersOfServers;
     public int numberOfClients;
-    public SelectionPolicy selectionPolicy = SelectionPolicy.SHORTEST_TIME;
 
     private Scheduler scheduler;
     private final SimulationFrame simulationFrame;
@@ -37,7 +36,7 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
     public SimulationManager() {
         this.currentTime = new AtomicInteger(0);
         this.simulationFrame = new SimulationFrame(this);
-//        scheduler = new Scheduler(numbersOfServers, 1, selectionPolicy); // de modificat max tasks per server
+
         generatedTasks = new ArrayList<>();
         generatedTasksToBePrinted = new ArrayList<>();
         toBeLogged = new StringBuilder();
@@ -46,58 +45,27 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
 
     public static void main(String[] args) {
         SimulationManager simulationManager = new SimulationManager();
-        //Thread simulationManagerThread = new Thread(simulationManager);
-        //simulationManager.generateInitialTasks();
-        //simulationManager.generateNRandomTasks(simulationManager.numberOfClients, simulationManager.minArrivalTime, simulationManager.maxArrivalTime,
-                //simulationManager.minProcessingTime, simulationManager.maxProcessingTime);
-        //simulationManagerThread.start();
 
-
-//        try {
-//            simulationManagerThread.join(); // Wait for simulation manager thread to finish
-//        } catch (InterruptedException e) {
-//            Thread.currentThread().interrupt();
-//        }
-
-//        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-//            simulationManagerThread.interrupt(); // Interrupt simulation manager thread
-//            try {
-//                simulationManagerThread.join(); // Wait for simulation manager thread to finish
-//            } catch (InterruptedException e) {
-//                Thread.currentThread().interrupt();
-//            }
-//        }));
-
-        //System.out.println("in main"  +    simulationManager.currentTime);
     }
-
+    //TO DO : statistics
+    //TO DO : stop when no more tasks in the sim
     @Override
     public void run() {
         try {
-            // Generate initial tasks
-
-//            scheduler.startThreads();
-            // Main simulation loop
             while (!Thread.interrupted() && currentTime.get() < timeLimit) {
                 // Process tasks arrival
                 System.out.println("Time : " + currentTime);
                 processArrivalTasks();
 
-                // Update GUI with current simulation state
-                //updateGUI();
+                // Update GUI with current simulation state and also add the current output to the .txt
                 logQueue.put(updateGUI().toString());
 
-                // Sleep for a period of time (e.g., 1 second) to simulate time passing
-
+                // Sleep for 1 second to simulate time passing
                 TimeUnit.SECONDS.sleep(1);
-
 
                 // Increment the current time
                 currentTime.incrementAndGet();
-
-                //System.out.println(scheduler.servers.getFirst().getTasks());
             }
-//            logToFile(toBeLogged.toString());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {
@@ -118,23 +86,14 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
 
             Task task = new Task(i + 1, arrivalTime, serviceTime);
             generatedTasks.add(task);
-            //generatedTasksToBePrinted.add(task);
         }
-        Collections.sort(generatedTasks, new Comparator<Task>() {
-            @Override
-            public int compare(Task task1, Task task2) {
-                return Integer.compare(task1.getArrivalTime(), task2.getArrivalTime());
-            }
-        });
+        //Sort the generated tasks by arrival time
+        generatedTasks.sort(Comparator.comparingInt(Task::getArrivalTime));
         generatedTasksToBePrinted.addAll(generatedTasks);
     }
 
-    // Method to generate initial tasks
+
     private  void generateInitialTasks() {
-//        Task task1 = new Task(1, 2, 2);
-//        Task task2 = new Task(2, 3, 3);
-//        Task task3 = new Task(3, 4, 4);
-//        Task task4 = new Task(4, 4, 5);
         Task task1 = new Task(1, 2, 2);
         Task task2 = new Task(2, 3, 3);
         Task task3 = new Task(3, 4, 4);
@@ -148,12 +107,11 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
         generatedTasksToBePrinted.addAll(generatedTasks);
     }
 
-    // Method to process arrival tasks
     private void processArrivalTasks() {
         for (Task task : generatedTasks) {
             if (currentTime.get() >= task.getArrivalTime() && !task.isHasBeenAdded()) {
                 scheduler.dispatchTask(task);
-//                scheduler.servers.getFirst().addTask(task);
+
                 task.setHasBeenAdded(true);
                 generatedTasksToBePrinted.remove(task);
             }
@@ -181,17 +139,8 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
 
         simulationFrame.updateSimulationInfo(info.toString());
         return info;
-        //logToFile(info.toString());
     }
 
-    private  void logToFile(String message) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(logFileName, true))) {
-            writer.write(message);
-            writer.newLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
     public static void clearFileContents(String filePath) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
             // Write nothing to the file, effectively clearing its contents
@@ -214,7 +163,7 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
         this.numbersOfServers = numServers;
         this.numberOfClients = numTasks;
 
-        this.scheduler = new Scheduler(numbersOfServers, 1, selectionPolicy);
+        this.scheduler = new Scheduler(numbersOfServers, selectionPolicy);
 
         clearFileContents(logFileName);
 

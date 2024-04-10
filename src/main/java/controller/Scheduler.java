@@ -5,21 +5,18 @@ import model.Server;
 import model.Task;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Scheduler {
     public List<Server> servers;
     public List<Thread> threads;
-    private int maxNoServers;
-    private int maxTasksPerServer;
+//    private final int maxNoServers;
+//    private final int maxTasksPerServer;
     private Strategy strategy;
 
-    public Scheduler(int nrServers, int maxTasksPerServer,SelectionPolicy selectionPolicy) {
-        this.maxNoServers = nrServers;
-        this.maxTasksPerServer = maxTasksPerServer;
+    public Scheduler(int nrServers,/* int maxTasksPerServer*/ SelectionPolicy selectionPolicy) {
+//        this.maxNoServers = nrServers;
+//        this.maxTasksPerServer = maxTasksPerServer;
         changeStrategy(selectionPolicy);
 
         servers = new ArrayList<>();
@@ -55,21 +52,5 @@ public class Scheduler {
         for (Server server : servers) {
             server.stopServer(); // Stop the server gracefully
         }
-    }
-
-    public List<Server> getServers() {
-        return servers;
-    }
-
-    public void setServers(List<Server> servers) {
-        this.servers = servers;
-    }
-
-    public Strategy getStrategy() {
-        return strategy;
-    }
-
-    public void setStrategy(Strategy strategy) {
-        this.strategy = strategy;
     }
 }

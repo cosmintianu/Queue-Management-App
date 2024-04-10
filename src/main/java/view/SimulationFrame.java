@@ -1,22 +1,15 @@
 package view;
 
 import model.SelectionPolicy;
-import model.Task;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class SimulationFrame extends JFrame {
-    private JPanel mainPanel;
-    private JPanel outputPanel;
-    private JTextArea textArea;
-    private JScrollPane scrollPane;
-    private JLabel timeLabel;
-    private JPanel inputPanel;
+    private final JPanel mainPanel;
+    private final JTextArea textArea;
+    private final JScrollPane scrollPane;
+    private final JPanel inputPanel;
     private JTextField maxSimulationTimeField;
 
     private JTextField numServersField;
@@ -27,7 +20,7 @@ public class SimulationFrame extends JFrame {
     private JTextField maxServiceTimeField;
     private JComboBox<String> strategyComboBox;
     private JButton startSimulationButton;
-    private SimulationManagerListener simulationManagerListener;
+    private final SimulationManagerListener simulationManagerListener;
 
 
     public SimulationFrame(SimulationManagerListener simulationManagerListener) {
@@ -107,26 +100,23 @@ public class SimulationFrame extends JFrame {
         inputPanel.add(emptyLabel);
 
         startSimulationButton = new JButton("Start Simulation");
-        startSimulationButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Retrieve text from text fields and parse into appropriate data types
-                int maxSimulationTime = Integer.parseInt(maxSimulationTimeField.getText());
-                int numServers = Integer.parseInt(numServersField.getText());
-                int numTasks = Integer.parseInt(numTasksField.getText());
-                int minArrivalTime = Integer.parseInt(minArrivalTimeField.getText());
-                int maxArrivalTime = Integer.parseInt(maxArrivalTimeField.getText());
-                int minServiceTime = Integer.parseInt(minServiceTimeField.getText());
-                int maxServiceTime = Integer.parseInt(maxServiceTimeField.getText());
+        startSimulationButton.addActionListener(e -> {
+            // Retrieve text from text fields and parse into appropriate data types
+            int maxSimulationTime = Integer.parseInt(maxSimulationTimeField.getText());
+            int numServers = Integer.parseInt(numServersField.getText());
+            int numTasks = Integer.parseInt(numTasksField.getText());
+            int minArrivalTime = Integer.parseInt(minArrivalTimeField.getText());
+            int maxArrivalTime = Integer.parseInt(maxArrivalTimeField.getText());
+            int minServiceTime = Integer.parseInt(minServiceTimeField.getText());
+            int maxServiceTime = Integer.parseInt(maxServiceTimeField.getText());
 
-                SelectionPolicy selectionPolicy = strategyComboBox.getSelectedIndex() == 0 ?
-                        SelectionPolicy.SHORTEST_TIME : SelectionPolicy.SHORTEST_QUEUE;
-                // Pass the parsed values to the corresponding fields of SimulationManager
-                simulationManagerListener.startSimulation(
-                        maxSimulationTime, numServers, numTasks, minArrivalTime, maxArrivalTime,
-                        minServiceTime, maxServiceTime,selectionPolicy
-                );
-            }
+            SelectionPolicy selectionPolicy = strategyComboBox.getSelectedIndex() == 0 ?
+                    SelectionPolicy.SHORTEST_TIME : SelectionPolicy.SHORTEST_QUEUE;
+            // Pass the parsed values to the corresponding fields of SimulationManager
+            simulationManagerListener.startSimulation(
+                    maxSimulationTime, numServers, numTasks, minArrivalTime, maxArrivalTime,
+                    minServiceTime, maxServiceTime,selectionPolicy
+            );
         });
         inputPanel.add(startSimulationButton);
 
