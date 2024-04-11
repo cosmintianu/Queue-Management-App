@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Scheduler {
-    public List<Server> servers;
-    public List<Thread> threads;
-//    private final int maxNoServers;
+    private List<Server> servers;
+    private List<Thread> threads;
+    //    private final int maxNoServers;
 //    private final int maxTasksPerServer;
     private Strategy strategy;
 
@@ -30,9 +30,9 @@ public class Scheduler {
         }
     }
 
-    public void startThreads(){
-        for(Thread thread : threads){
-            thread .start();
+    public void startThreads() {
+        for (Thread thread : threads) {
+            thread.start();
         }
     }
 
@@ -44,8 +44,9 @@ public class Scheduler {
 
         }
     }
-    public void dispatchTask(Task task){
-        strategy.addTask(servers,task);
+
+    public void dispatchTask(Task task) {
+        strategy.addTask(servers, task);
     }
 
     public synchronized void stopServers() {
@@ -53,4 +54,9 @@ public class Scheduler {
             server.stopServer(); // Stop the server gracefully
         }
     }
+
+    public List<Server> getServers() {
+        return servers;
+    }
+
 }

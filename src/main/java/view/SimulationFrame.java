@@ -53,6 +53,13 @@ public class SimulationFrame extends JFrame {
         textArea.setCaretPosition(textArea.getDocument().getLength()); // Scroll to the bottom
     }
 
+    public synchronized void appendStats(int peakTime, double averageWaitingTime, double averageServiceTime){
+        textArea.append("\n");
+        textArea.append("Peak time : " + peakTime + "\n");
+        textArea.append("Average waiting time : " + averageWaitingTime + "\n");
+        textArea.append("Average service time : " + averageServiceTime + "\n");
+    }
+
     // Update the current time label
     private void initComponents() {
 
@@ -112,7 +119,7 @@ public class SimulationFrame extends JFrame {
 
             SelectionPolicy selectionPolicy = strategyComboBox.getSelectedIndex() == 0 ?
                     SelectionPolicy.SHORTEST_TIME : SelectionPolicy.SHORTEST_QUEUE;
-            // Pass the parsed values to the corresponding fields of SimulationManager
+            // Pass the parsed values to the corresponding fields of controller.SimulationManager
             simulationManagerListener.startSimulation(
                     maxSimulationTime, numServers, numTasks, minArrivalTime, maxArrivalTime,
                     minServiceTime, maxServiceTime,selectionPolicy
