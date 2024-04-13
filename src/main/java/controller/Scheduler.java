@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Scheduler {
-    private List<Server> servers;
+    private  List<Server> servers;
     private List<Thread> threads;
     //    private final int maxNoServers;
 //    private final int maxTasksPerServer;
@@ -26,7 +26,6 @@ public class Scheduler {
             Server server = new Server(currentTime); // Create a new server object
             Thread serverThread = new Thread(server); // Create a thread for the server
             threads.add(serverThread);
-            //serverThread.start(); // Start the server thread
             servers.add(server);
         }
     }

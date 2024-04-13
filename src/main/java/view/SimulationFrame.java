@@ -51,12 +51,12 @@ public class SimulationFrame extends JFrame {
     }
 
     // Update the text area with the tasks in the queues for all servers
-    public synchronized void updateSimulationInfo(String info) {
+    public  void updateSimulationInfo(String info) {
         textArea.append(info + "\n");
         textArea.setCaretPosition(textArea.getDocument().getLength()); // Scroll to the bottom
     }
 
-    public synchronized void appendStats(int peakTime, double averageWaitingTime, double averageServiceTime){
+    public  void appendStats(int peakTime, double averageWaitingTime, double averageServiceTime){
         textArea.append("END OF SIMULATION \n");
         textArea.append("Peak time : " + peakTime + "\n");
         textArea.append("Average waiting time : " + averageWaitingTime + "\n");

@@ -8,9 +8,6 @@ import view.SimulationManagerListener;
 
 
 import javax.swing.*;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -27,14 +24,13 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
     private Scheduler scheduler;
     private final SimulationFrame simulationFrame;
 
-    private final List<Task> generatedTasks;
+    private List<Task> generatedTasks;
     private final AtomicInteger currentTime;
     private final String logFileName = "simulation_log.txt";
     private int peakTime = 0;
-    private double averageWaitingTime = 0D;
+    private int maxNumClientsAtCurrentTime = 0;
     private double averageServiceTime;
     private volatile boolean guiThreadRunning = true;
-
 
     public SimulationManager() {
         this.currentTime = new AtomicInteger(0);
@@ -46,6 +42,7 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
         SimulationManager simulationManager = new SimulationManager();
 
     }
+
     @Override
     public void run() {
         try {
@@ -56,8 +53,7 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
                 // Process tasks arrival
                 processArrivalTasks();
 
-                computeNumberOfClientsAtCurrentTime(currentTime);
-                //computeAverageWaitingTimeUntilCurrentTime();
+                computePeakTime(currentTime);
 
                 // Sleep for 1 second to simulate time passing
                 TimeUnit.SECONDS.sleep(1);
@@ -65,12 +61,14 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
                 // Increment the current time
                 currentTime.incrementAndGet();
 
-                if(!checkIfAnyTasksRemained()){
+                // If no more task to be or being processed, stop simulation
+                if (!checkIfAnyTasksRemained()) {
                     break;
                 }
             }
+            stopGUIThread();
 
-            simulationFrame.appendStats(peakTime,computeAverageWaitingTime(),averageServiceTime);
+            simulationFrame.appendStats(peakTime, computeAverageWaitingTime(), averageServiceTime);
             simulationFrame.writeContentsToFile(logFileName);
 
         } catch (InterruptedException e) {
@@ -78,62 +76,74 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
         } finally {
             // Stop servers
             scheduler.stopServers();
-            stopGUIThread();
+
         }
     }
 
-    public boolean checkIfAnyTasksRemained(){
+    @Override
+    public void startSimulation(int maxSimulationTime, int numServers, int numTasks, int minArrivalTime,
+                                int maxArrivalTime, int minServiceTime, int maxServiceTime, SelectionPolicy selectionPolicy) {
+
+        this.timeLimit = maxSimulationTime;
+        this.maxArrivalTime = maxArrivalTime;
+        this.minArrivalTime = minArrivalTime;
+        this.maxServiceTime = maxServiceTime;
+        this.minServiceTime = minServiceTime;
+        this.numbersOfServers = numServers;
+        this.numberOfClients = numTasks;
+
+        this.scheduler = new Scheduler(numbersOfServers, selectionPolicy, currentTime);
+
+        generateNRandomTasks(this.numberOfClients, this.minArrivalTime, this.maxArrivalTime,
+                this.minServiceTime, this.maxServiceTime);
+
+        averageServiceTime = computeAverageServiceTime();
+
+        Thread simulationManagerThread = new Thread(this);
+
+        simulationManagerThread.start();
+        scheduler.startThreads();
+        startGUIThread();
+
+    }
+
+    public boolean checkIfAnyTasksRemained() {
         boolean tasksToBeProcessedRemaining = true;
         boolean tasksToBeFinishedRemaining = false;
 
-        if(generatedTasks.isEmpty()){
+        if (generatedTasks.isEmpty()) {
             tasksToBeProcessedRemaining = false;
         }
 
-        for(Server server : scheduler.getServers()){
-            if(!server.getTasks().isEmpty()){
+        for (Server server : scheduler.getServers()) {
+            if (!server.getTasks().isEmpty()) {
                 tasksToBeFinishedRemaining = true;
             }
         }
 
-        if(!tasksToBeProcessedRemaining && !tasksToBeFinishedRemaining){
+        if (!tasksToBeProcessedRemaining && !tasksToBeFinishedRemaining) {
             return false;
-        }
-        else return true;
+        } else return true;
     }
-    public synchronized void computeNumberOfClientsAtCurrentTime(AtomicInteger currentTime){
+
+    public synchronized void computePeakTime(AtomicInteger currentTime) {
         int sumOfClients = 0;
-        for(Server server : scheduler.getServers()){
+        for (Server server : scheduler.getServers()) {
             sumOfClients += server.getTasks().size();
         }
-
-        if(sumOfClients > peakTime){
+        System.out.println("the nr of clients : " + sumOfClients);
+        if (sumOfClients > maxNumClientsAtCurrentTime) {
+            maxNumClientsAtCurrentTime = sumOfClients;
             peakTime = currentTime.get();
         }
     }
 
-    public synchronized void computeAverageWaitingTimeUntilCurrentTime(){
-        int sumOfWaitingTimes = 0;
-        int nrOfNonEmptyServers = 0;
-
-        for(Server server : scheduler.getServers()){
-            //if(!server.getTasks().isEmpty()){
-                sumOfWaitingTimes += server.getWaitingPeriod().get();
-                nrOfNonEmptyServers ++;
-            //}
-        }
-
-        if(sumOfWaitingTimes > 0){
-            averageWaitingTime += (double) sumOfWaitingTimes / nrOfNonEmptyServers;
-        }
-
-    }
     public double computeAverageWaitingTime() {
         int sumOfWaitingTimes = 0;
-        for(Server server : scheduler.getServers()){
+        for (Server server : scheduler.getServers()) {
             sumOfWaitingTimes += server.getTotalWaitingTime();
         }
-        return (double) sumOfWaitingTimes/numberOfClients;
+        return (double) sumOfWaitingTimes / numberOfClients;
     }
 
     public double computeAverageServiceTime() {
@@ -144,10 +154,9 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
         return (double) totalServiceTime / generatedTasks.size();
     }
 
-
     public void generateNRandomTasks(int N, int minArrivalTime, int maxArrivalTime, int minServiceTime, int maxServiceTime) {
         Random random = new Random();
-        List<Task> tasks = new ArrayList<>(N); // Create a temporary list to hold the generated tasks
+        List<Task> tasks = new ArrayList<>(N);
         for (int i = 0; i < N; i++) {
             // Generate random arrival time between minArrivalTime and maxArrivalTime
             int arrivalTime = random.nextInt(maxArrivalTime - minArrivalTime + 1) + minArrivalTime;
@@ -172,11 +181,15 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
                 task.setHasBeenAdded(true);
                 iterator.remove(); // Remove the task from generatedTasks
             }
+            if (task.getArrivalTime() > currentTime.get()) {
+                break;
+            }
         }
     }
 
     // Method to update GUI with current simulation state
-    private  void updateGUI() {
+    private void updateGUI() {
+
         StringBuilder info = new StringBuilder();
         info.append("Time: ").append(currentTime).append("\n");
         info.append("Waiting clients:").append(generatedTasks).append("\n");
@@ -197,37 +210,12 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
         simulationFrame.updateSimulationInfo(info.toString());
     }
 
-    @Override
-    public void startSimulation(int maxSimulationTime, int numServers, int numTasks, int minArrivalTime,
-                                int maxArrivalTime, int minServiceTime, int maxServiceTime, SelectionPolicy selectionPolicy) {
-
-        this.timeLimit = maxSimulationTime;
-        this.maxArrivalTime = maxArrivalTime;
-        this.minArrivalTime = minArrivalTime;
-        this.maxServiceTime = maxServiceTime;
-        this.minServiceTime = minServiceTime;
-        this.numbersOfServers = numServers;
-        this.numberOfClients = numTasks;
-
-        this.scheduler = new Scheduler(numbersOfServers, selectionPolicy,currentTime);
-        generateNRandomTasks(this.numberOfClients,this.minArrivalTime,this.maxArrivalTime,
-                this.minServiceTime, this.maxServiceTime);
-        averageServiceTime = computeAverageServiceTime();
-
-        Thread simulationManagerThread = new Thread(this);
-
-        simulationManagerThread.start();
-        startGUIThread();
-        scheduler.startThreads();
-
-    }
-
     private void startGUIThread() {
         Thread guiThread = new Thread(() -> {
             while (guiThreadRunning) {
                 try {
-                    updateGUI();
-                    Thread.sleep(1000); // Update GUI every second (adjust as needed)
+                    SwingUtilities.invokeLater(this::updateGUI);
+                    TimeUnit.SECONDS.sleep(1); // Update GUI every second (adjust as needed)
 
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
@@ -236,6 +224,7 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
         });
         guiThread.start();
     }
+
     private void stopGUIThread() {
         guiThreadRunning = false;
     }
