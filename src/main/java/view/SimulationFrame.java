@@ -4,6 +4,9 @@ import model.SelectionPolicy;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class SimulationFrame extends JFrame {
     private final JPanel mainPanel;
@@ -128,5 +131,15 @@ public class SimulationFrame extends JFrame {
         inputPanel.add(startSimulationButton);
 
         add(inputPanel);
+    }
+
+    public void writeContentsToFile(String fileName) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+            writer.write(textArea.getText());
+            writer.flush();
+            System.out.println("Contents written to file: " + fileName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
