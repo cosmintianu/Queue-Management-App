@@ -50,43 +50,35 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
     public void run() {
         try {
 
-            while (!Thread.interrupted() && currentTime.get() <= timeLimit) {
+            while (currentTime.get() <= timeLimit) {
                 System.out.println("Time : " + currentTime);
 
                 // Process tasks arrival
                 processArrivalTasks();
 
                 computeNumberOfClientsAtCurrentTime(currentTime);
-                computeAverageWaitingTimeUntilCurrentTime();
+                //computeAverageWaitingTimeUntilCurrentTime();
 
                 // Sleep for 1 second to simulate time passing
                 TimeUnit.SECONDS.sleep(1);
 
                 // Increment the current time
                 currentTime.incrementAndGet();
+
                 if(!checkIfAnyTasksRemained()){
                     break;
                 }
-
             }
-            stopGUIThread();
 
-            simulationFrame.appendStats(peakTime,(double) averageWaitingTime/timeLimit,averageServiceTime);
+            simulationFrame.appendStats(peakTime,computeAverageWaitingTime(),averageServiceTime);
             simulationFrame.writeContentsToFile(logFileName);
-
-
-            //peaktime
-            System.out.println(peakTime);
-
-            //averageWaitingTime
-            System.out.println((double) averageWaitingTime/timeLimit);
-
 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {
-            // Stop servers gracefully
+            // Stop servers
             scheduler.stopServers();
+            stopGUIThread();
         }
     }
 
@@ -135,6 +127,13 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
             averageWaitingTime += (double) sumOfWaitingTimes / nrOfNonEmptyServers;
         }
 
+    }
+    public double computeAverageWaitingTime() {
+        int sumOfWaitingTimes = 0;
+        for(Server server : scheduler.getServers()){
+            sumOfWaitingTimes += server.getTotalWaitingTime();
+        }
+        return (double) sumOfWaitingTimes/numberOfClients;
     }
 
     public double computeAverageServiceTime() {
@@ -210,7 +209,7 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
         this.numbersOfServers = numServers;
         this.numberOfClients = numTasks;
 
-        this.scheduler = new Scheduler(numbersOfServers, selectionPolicy);
+        this.scheduler = new Scheduler(numbersOfServers, selectionPolicy,currentTime);
         generateNRandomTasks(this.numberOfClients,this.minArrivalTime,this.maxArrivalTime,
                 this.minServiceTime, this.maxServiceTime);
         averageServiceTime = computeAverageServiceTime();

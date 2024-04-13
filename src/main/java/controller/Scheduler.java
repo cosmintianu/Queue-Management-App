@@ -6,6 +6,7 @@ import model.Task;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Scheduler {
     private List<Server> servers;
@@ -14,7 +15,7 @@ public class Scheduler {
 //    private final int maxTasksPerServer;
     private Strategy strategy;
 
-    public Scheduler(int nrServers,/* int maxTasksPerServer*/ SelectionPolicy selectionPolicy) {
+    public Scheduler(int nrServers,/* int maxTasksPerServer*/ SelectionPolicy selectionPolicy, AtomicInteger currentTime) {
 //        this.maxNoServers = nrServers;
 //        this.maxTasksPerServer = maxTasksPerServer;
         changeStrategy(selectionPolicy);
@@ -22,7 +23,7 @@ public class Scheduler {
         servers = new ArrayList<>();
         threads = new ArrayList<>();
         for (int i = 0; i < nrServers; i++) {
-            Server server = new Server(); // Create a new server object
+            Server server = new Server(currentTime); // Create a new server object
             Thread serverThread = new Thread(server); // Create a thread for the server
             threads.add(serverThread);
             //serverThread.start(); // Start the server thread

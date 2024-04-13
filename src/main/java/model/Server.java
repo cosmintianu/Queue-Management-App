@@ -11,12 +11,16 @@ public class Server implements Runnable {
     private final BlockingQueue<Task> tasks;
     private final AtomicInteger waitingPeriod;
     private final AtomicBoolean running;
+    private int totalWaitingTime;
+    private final AtomicInteger currentTime;
 
-    public Server() {
+    public Server(AtomicInteger currentTime) {
 
         tasks = new LinkedBlockingQueue<>();
         waitingPeriod = new AtomicInteger(0);
         running = new AtomicBoolean(true);
+        this.currentTime = currentTime;
+        totalWaitingTime = 0;
     }
 
     public void addTask(Task newTask) {
@@ -33,23 +37,33 @@ public class Server implements Runnable {
 
     @Override
     public void run() {
+        int prevTaskId = 0;
         while (running.get() && !Thread.currentThread().isInterrupted()) {
+
+
             try {
                 Task task = tasks.peek();
 
                 if (task != null) {
-                    //waitingPeriod.addAndGet(task.getServiceTime());
+                    int currentTaskId = task.getId();
 
-                    System.out.println(" and remaining time: " + waitingPeriod.get());
+                    if(prevTaskId != currentTaskId){
+                        totalWaitingTime += currentTime.get() - task.getArrivalTime();
+                        //System.out.println("The task waited needes to wait for : " + totalWaitingTime);
+                    }
+                    System.out.println("the curr time in the task is " + currentTime);
+                    prevTaskId = currentTaskId;
+
+                    System.out.println("Task " + task.getId() + " has remaining time: " + task.getServiceTime());
                     TimeUnit.SECONDS.sleep(1);
                     waitingPeriod.decrementAndGet();
-                    //task.setServiceTime(waitingPeriod.get());
+
                     task.setServiceTime(task.getServiceTime() - 1);
+
                     if (task.getServiceTime() == 0) {
                         tasks.poll();
                         System.out.println("Task " + task.getId() + " completed.");
                     }
-                    //System.out.println("Task completed:    " + task);
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -71,4 +85,7 @@ public class Server implements Runnable {
         return waitingPeriod;
     }
 
+    public int getTotalWaitingTime() {
+        return totalWaitingTime;
+    }
 }

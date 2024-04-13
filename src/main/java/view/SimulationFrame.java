@@ -57,7 +57,7 @@ public class SimulationFrame extends JFrame {
     }
 
     public synchronized void appendStats(int peakTime, double averageWaitingTime, double averageServiceTime){
-        textArea.append("\n");
+        textArea.append("END OF SIMULATION \n");
         textArea.append("Peak time : " + peakTime + "\n");
         textArea.append("Average waiting time : " + averageWaitingTime + "\n");
         textArea.append("Average service time : " + averageServiceTime + "\n");
