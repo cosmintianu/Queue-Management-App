@@ -40,13 +40,11 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
 
     public static void main(String[] args) {
         SimulationManager simulationManager = new SimulationManager();
-
     }
 
     @Override
     public void run() {
         try {
-
             while (currentTime.get() <= timeLimit) {
                 System.out.println("Time : " + currentTime);
 
@@ -76,7 +74,6 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
         } finally {
             // Stop servers
             scheduler.stopServers();
-
         }
     }
 
@@ -118,12 +115,11 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
         for (Server server : scheduler.getServers()) {
             if (!server.getTasks().isEmpty()) {
                 tasksToBeFinishedRemaining = true;
+                break;
             }
         }
 
-        if (!tasksToBeProcessedRemaining && !tasksToBeFinishedRemaining) {
-            return false;
-        } else return true;
+        return tasksToBeProcessedRemaining || tasksToBeFinishedRemaining;
     }
 
     public synchronized void computePeakTime(AtomicInteger currentTime) {

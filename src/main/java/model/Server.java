@@ -49,7 +49,7 @@ public class Server implements Runnable {
 
                     if(prevTaskId != currentTaskId){
                         totalWaitingTime += currentTime.get() - task.getArrivalTime();
-                        //System.out.println("The task waited needes to wait for : " + totalWaitingTime);
+                        //System.out.println("The task waited needs to wait for : " + totalWaitingTime);
                     }
                     System.out.println("the curr time in the task is " + currentTime);
                     prevTaskId = currentTaskId;

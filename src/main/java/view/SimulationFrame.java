@@ -14,7 +14,6 @@ public class SimulationFrame extends JFrame {
     private final JScrollPane scrollPane;
     private final JPanel inputPanel;
     private JTextField maxSimulationTimeField;
-
     private JTextField numServersField;
     private JTextField numTasksField;
     private JTextField minArrivalTimeField;
