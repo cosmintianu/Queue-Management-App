@@ -4,7 +4,6 @@ import model.SelectionPolicy;
 import model.Server;
 import model.Task;
 import view.SimulationFrame;
-import view.SimulationManagerListener;
 
 
 import javax.swing.*;
@@ -172,9 +171,8 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
         Iterator<Task> iterator = generatedTasks.iterator();
         while (iterator.hasNext()) {
             Task task = iterator.next();
-            if (currentTime.get() >= task.getArrivalTime() && !task.isHasBeenAdded()) {
+            if (currentTime.get() >= task.getArrivalTime() ){
                 scheduler.dispatchTask(task);
-                task.setHasBeenAdded(true);
                 iterator.remove(); // Remove the task from generatedTasks
             }
             if (task.getArrivalTime() > currentTime.get()) {

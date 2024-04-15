@@ -1,5 +1,6 @@
 package view;
 
+import controller.SimulationManagerListener;
 import model.SelectionPolicy;
 
 import javax.swing.*;
