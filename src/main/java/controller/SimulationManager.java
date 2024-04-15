@@ -78,7 +78,8 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
 
     @Override
     public void startSimulation(int maxSimulationTime, int numServers, int numTasks, int minArrivalTime,
-                                int maxArrivalTime, int minServiceTime, int maxServiceTime, SelectionPolicy selectionPolicy) {
+                                int maxArrivalTime, int minServiceTime, int maxServiceTime,
+                                SelectionPolicy selectionPolicy) {
 
         this.timeLimit = maxSimulationTime;
         this.maxArrivalTime = maxArrivalTime;
@@ -209,7 +210,7 @@ public class SimulationManager implements Runnable, SimulationManagerListener {
             while (guiThreadRunning) {
                 try {
                     SwingUtilities.invokeLater(this::updateGUI);
-                    TimeUnit.SECONDS.sleep(1); // Update GUI every second (adjust as needed)
+                    TimeUnit.SECONDS.sleep(1);
 
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();

@@ -11,20 +11,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Scheduler {
     private  List<Server> servers;
     private List<Thread> threads;
-    //    private final int maxNoServers;
-//    private final int maxTasksPerServer;
+
     private Strategy strategy;
 
-    public Scheduler(int nrServers,/* int maxTasksPerServer*/ SelectionPolicy selectionPolicy, AtomicInteger currentTime) {
-//        this.maxNoServers = nrServers;
-//        this.maxTasksPerServer = maxTasksPerServer;
+    public Scheduler(int nrServers,SelectionPolicy selectionPolicy, AtomicInteger currentTime) {
+
         changeStrategy(selectionPolicy);
 
         servers = new ArrayList<>();
         threads = new ArrayList<>();
         for (int i = 0; i < nrServers; i++) {
-            Server server = new Server(currentTime); // Create a new server object
-            Thread serverThread = new Thread(server); // Create a thread for the server
+            Server server = new Server(currentTime);
+            Thread serverThread = new Thread(server);
             threads.add(serverThread);
             servers.add(server);
         }

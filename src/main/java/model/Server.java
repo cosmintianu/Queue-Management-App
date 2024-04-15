@@ -39,8 +39,6 @@ public class Server implements Runnable {
     public void run() {
         int prevTaskId = 0;
         while (running.get() && !Thread.currentThread().isInterrupted()) {
-
-
             try {
                 Task task = tasks.peek();
 
@@ -49,7 +47,7 @@ public class Server implements Runnable {
 
                     if(prevTaskId != currentTaskId){
                         totalWaitingTime += currentTime.get() - task.getArrivalTime();
-                        //System.out.println("The task waited needs to wait for : " + totalWaitingTime);
+                        System.out.println("The task waited needs to wait for : " + totalWaitingTime);
                     }
                     System.out.println("the curr time in the task is " + currentTime);
                     prevTaskId = currentTaskId;
